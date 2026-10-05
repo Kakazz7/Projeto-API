@@ -343,6 +343,47 @@ if (horarioOcupado) {
         erro: "Profissional já possui agendamento nesse horário"
     })
 }
+ //remarcar agendamento
+app.put("/agendamentos/:id", (req, res) => {
+    const id = Number(req.params.id);
+
+    const agendamento = agendamentos.find(
+        agendamento => agendamento.id === id
+    )
+    if (!agendamento) {
+        return res.status(404).json({
+            erro: "Agendamento não encontrado"
+        });
+    }
+
+    const {
+        clienteId,
+        profissionalId,
+        servicoId,
+        data,
+        hora
+    } = req.body;
+
+    const horarioOcupado = agendamentos.some(outro =>
+        outro.id !== id &&
+        outro.profissionalId === Number(profissionalId) &&
+        outro.data === data &&
+        outro.hora === hora &&
+        outro.status !== "cancelado"
+    )
+    if (horarioOcupado) {
+        return res.status(400).json({
+            erro: "Profissional já possui agendamento nesse horário"
+        });
+    }
+
+    agendamento.clienteId = Number(clienteId);
+    agendamento.profissionalId = Number(profissionalId);
+    agendamento.servicoId = Number(servicoId);
+    agendamento.data = data;
+    agendamento.hora = hora;
+    res.json(agendamento);
+});
 
 app.listen(PORTA, () => {
     console.log(`Servidor rodando na porta ${PORTA}`)
