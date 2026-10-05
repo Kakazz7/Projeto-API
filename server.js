@@ -95,6 +95,80 @@ app.delete("/clientes/:id", (req, res) => {
     })
 })
 
+//Entidade PRofissional e rotas
+let profissionais = []
+let proximoProfissionalId = 1
+
+app.post("/profissionais", (req, res) => {
+    const { nome, especialidade } = req.body
+    if (!nome || !especialidade) {
+        return res.status(400).json({
+            erro: "Nome e especialidade são obrigatórios"
+        })
+    }
+    const profissional = {
+        id: proximoProfissionalId++,
+        nome,
+        especialidade
+    }
+
+    profissionais.push(profissional);
+    res.status(201).json(profissional);
+})
+
+app.get("/profissionais", (req, res) => {
+    res.json(profissionais)
+})
+
+app.get("/profissionais/:id", (req, res) => {
+    const id = Number(req.params.id);
+    const profissional = profissionais.find(
+        profissional => profissional.id === id
+    )
+
+    if (!profissional) {
+        return res.status(404).json({
+            erro: "Profissional não encontrado"
+        })
+    }
+    res.json(profissional)
+})
+
+app.put("/profissionais/:id", (req, res) => {
+    const id = Number(req.params.id)
+    const profissional = profissionais.find(
+        profissional => profissional.id === id
+    )
+    if (!profissional) {
+        return res.status(404).json({
+            erro: "Profissional não encontrado"
+        })
+    }
+
+    const { nome, especialidade } = req.body
+    profissional.nome = nome
+    profissional.especialidade = especialidade
+    res.json(profissional)
+})
+
+app.delete("/profissionais/:id", (req, res) => {
+
+    const id = Number(req.params.id);
+    const indice = profissionais.findIndex(
+        profissional => profissional.id === id
+    )
+    if (indice === -1) {
+        return res.status(404).json({
+            erro: "Profissional não encontrado"
+        })
+    }
+
+    profissionais.splice(indice, 1);
+    res.json({
+        mensagem: "Profissional excluído com sucesso"
+    })
+})
+
 
 app.listen(PORTA, () => {
     console.log(`Servidor rodando na porta ${PORTA}`)
