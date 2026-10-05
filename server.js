@@ -383,8 +383,26 @@ app.put("/agendamentos/:id", (req, res) => {
     agendamento.data = data;
     agendamento.hora = hora;
     res.json(agendamento);
-});
+})
 
+//cancelar agendamento
+app.delete("/agendamentos/:id", (req, res) => {
+    const id = Number(req.params.id);
+    const agendamento = agendamentos.find(
+        agendamento => agendamento.id === id
+    )
+    if (!agendamento) {
+        return res.status(404).json({
+            erro: "Agendamento não encontrado"
+        });
+    }
+
+    agendamento.status = "cancelado";
+    res.json({
+        mensagem: "Agendamento cancelado com sucesso",
+        agendamento
+    })
+})
 app.listen(PORTA, () => {
     console.log(`Servidor rodando na porta ${PORTA}`)
 })
