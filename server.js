@@ -403,6 +403,38 @@ app.delete("/agendamentos/:id", (req, res) => {
         agendamento
     })
 })
+
+
+//status do agendamento
+app.patch("/agendamentos/:id/status", (req, res) => {
+    const id = Number(req.params.id);
+    const agendamento = agendamentos.find(
+        agendamento => agendamento.id === id
+    )
+
+    if (!agendamento) {
+        return res.status(404).json({
+            erro: "Agendamento não encontrado"
+        })
+    }
+
+    const { status } = req.body;
+    const statusValidos = [
+        "pendente",
+        "confirmado",
+        "concluido",
+        "cancelado"
+    ]
+    if (!statusValidos.includes(status)) {
+        return res.status(400).json({
+            erro: "Status inválido"
+        })
+    }
+
+    agendamento.status = status;
+    res.json(agendamento);
+})
+
 app.listen(PORTA, () => {
     console.log(`Servidor rodando na porta ${PORTA}`)
 })
