@@ -435,6 +435,19 @@ app.patch("/agendamentos/:id/status", (req, res) => {
     res.json(agendamento);
 })
 
+//busca dos profissionais
+app.get("/profissionais", (req, res) => {
+    let resultado = profissionais
+    if (req.query.nome) {
+        resultado = profissionais.filter(profissional =>
+            profissional.nome
+                .toLowerCase()
+                .includes(req.query.nome.toLowerCase())
+        )
+    }
+    res.json(resultado)
+})
+
 app.listen(PORTA, () => {
     console.log(`Servidor rodando na porta ${PORTA}`)
 })
