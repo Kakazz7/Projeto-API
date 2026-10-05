@@ -262,6 +262,74 @@ app.delete("/servicos/:id", (req, res) => {
     })
 })
 
+//Entidade agendamento e rotas
+let agendamentos = []
+let proximoAgendamentoId = 1
+
+app.post("/agendamentos", (req, res) => {
+    const {
+        clienteId,
+        profissionalId,
+        servicoId,
+        data,
+        hora
+    } = req.body
+
+    const cliente = clientes.find(
+        cliente => cliente.id === Number(clienteId)
+    )
+    if (!cliente) {
+        return res.status(404).json({
+            erro: "Cliente não encontrado"
+        })
+    }
+
+    const profissional = profissionais.find(
+        profissional => profissional.id === Number(profissionalId)
+    )
+    if (!profissional) {
+        return res.status(404).json({
+            erro: "Profissional não encontrado"
+        });
+    }
+
+    const servico = servicos.find(
+        servico => servico.id === Number(servicoId)
+    )
+    if (!servico) {
+        return res.status(404).json({
+            erro: "Serviço não encontrado"
+        });
+    }
+    const agendamento = {
+        id: proximoAgendamentoId++,
+        clienteId: Number(clienteId),
+        profissionalId: Number(profissionalId),
+        servicoId: Number(servicoId),
+        data,
+        hora,
+        status: "pendente"
+    }
+
+    agendamentos.push(agendamento)
+    res.status(201).json(agendamento)
+})
+app.get("/agendamentos", (req, res) => {
+    res.json(agendamentos);
+})
+
+app.get("/agendamentos/:id", (req, res) => {
+    const id = Number(req.params.id);
+    const agendamento = agendamentos.find(
+        agendamento => agendamento.id === id
+    )
+    if (!agendamento) {
+        return res.status(404).json({
+            erro: "Agendamento não encontrado"
+        })
+    }
+    res.json(agendamento)
+})
 
 
 
