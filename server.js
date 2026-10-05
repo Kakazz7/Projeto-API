@@ -448,6 +448,27 @@ app.get("/profissionais", (req, res) => {
     res.json(resultado)
 })
 
+
+//busca de serviços
+app.get("/servicos", (req, res) => {
+    let resultado = servicos
+    if (req.query.nome) {
+        resultado = resultado.filter(servico =>
+            servico.nome
+                .toLowerCase()
+                .includes(req.query.nome.toLowerCase())
+        )
+    }
+    if (req.query.categoria) {
+        resultado = resultado.filter(servico =>
+            servico.categoria
+                .toLowerCase()
+                .includes(req.query.categoria.toLowerCase())
+        )
+    }
+    res.json(resultado);
+})
+
 app.listen(PORTA, () => {
     console.log(`Servidor rodando na porta ${PORTA}`)
 })
