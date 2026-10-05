@@ -169,6 +169,102 @@ app.delete("/profissionais/:id", (req, res) => {
     })
 })
 
+//Entidade Serviço e rotas
+let servicos = []
+let proximoServicoId = 1
+
+app.post("/servicos", (req, res) => {
+    const {
+        nome,
+        descricao,
+        categoria,
+        duracao,
+        preco
+    } = req.body
+    if (!nome || !categoria || !duracao || preco === undefined) {
+        return res.status(400).json({
+            erro: "Nome, categoria, duração e preço são obrigatórios"
+        })
+    }
+
+    const servico = {
+        id: proximoServicoId++,
+        nome,
+        descricao,
+        categoria,
+        duracao,
+        preco
+    }
+    servicos.push(servico)
+    res.status(201).json(servico)
+})
+app.get("/servicos", (req, res) => {
+    res.json(servicos)
+})
+
+app.get("/servicos/:id", (req, res) => {
+    const id = Number(req.params.id)
+    const servico = servicos.find(
+        servico => servico.id === id
+    )
+
+    if (!servico) {
+        return res.status(404).json({
+            erro: "Serviço não encontrado"
+        })
+    }
+
+    res.json(servico)
+})
+
+app.put("/servicos/:id", (req, res) => {
+    const id = Number(req.params.id)
+
+    const servico = servicos.find(
+        servico => servico.id === id
+    )
+    if (!servico) {
+        return res.status(404).json({
+            erro: "Serviço não encontrado"
+        })
+    }
+
+    const {
+        nome,
+        descricao,
+        categoria,
+        duracao,
+        preco
+    } = req.body
+
+    servico.nome = nome
+    servico.descricao = descricao
+    servico.categoria = categoria
+    servico.duracao = duracao
+    servico.preco = preco
+    res.json(servico)
+})
+
+app.delete("/servicos/:id", (req, res) => {
+    const id = Number(req.params.id)
+    const indice = servicos.findIndex(
+        servico => servico.id === id
+    )
+    if (indice === -1) {
+        return res.status(404).json({
+            erro: "Serviço não encontrado"
+        })
+    }
+
+    servicos.splice(indice, 1);
+    res.json({
+        mensagem: "Serviço excluído com sucesso"
+    })
+})
+
+
+
+
 
 app.listen(PORTA, () => {
     console.log(`Servidor rodando na porta ${PORTA}`)
