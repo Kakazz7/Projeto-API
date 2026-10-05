@@ -19,7 +19,9 @@ app.get("/", (req, res) => {
 let clientes = []
 let proximoClienteId = 1
 
+//cadrastra um novo cliente obrigatoriamente com nome, email,telefone
 app.post("/clientes", (req, res) => {
+
     const { nome, email, telefone } = req.body;
     if (!nome || !email || !telefone) {
         return res.status(400).json({
@@ -36,10 +38,12 @@ app.post("/clientes", (req, res) => {
     res.status(201).json(cliente);
 });
 
+//mostra todos clientes ja cadrastados como lista
 app.get("/clientes", (req, res) => {
     res.json(clientes);
 })
 
+ //busca cliente especifico pelo id
 app.get("/clientes/:id", (req, res) => {
     const id = Number(req.params.id)
 
@@ -54,6 +58,7 @@ app.get("/clientes/:id", (req, res) => {
     res.json(cliente)
 })
 
+//altera daddos do cliente ja cadrastado
 app.put("/clientes/:id", (req, res) => {
     const id = Number(req.params.id)
 
@@ -76,6 +81,7 @@ app.put("/clientes/:id", (req, res) => {
     res.json(cliente)
 })
 
+//remove o cliente cadrastado
 app.delete("/clientes/:id", (req, res) => {
     const id = Number(req.params.id)
 
@@ -99,6 +105,7 @@ app.delete("/clientes/:id", (req, res) => {
 let profissionais = []
 let proximoProfissionalId = 1
 
+//cadrasta um profissional
 app.post("/profissionais", (req, res) => {
     const { nome, especialidade } = req.body
     if (!nome || !especialidade) {
@@ -116,10 +123,12 @@ app.post("/profissionais", (req, res) => {
     res.status(201).json(profissional);
 })
 
+//mostra todos os profissionais por lista 
 app.get("/profissionais", (req, res) => {
     res.json(profissionais)
 })
 
+//busca profissional especifico pelo id
 app.get("/profissionais/:id", (req, res) => {
     const id = Number(req.params.id);
     const profissional = profissionais.find(
@@ -134,6 +143,7 @@ app.get("/profissionais/:id", (req, res) => {
     res.json(profissional)
 })
 
+//atualiza os dados de um profissional
 app.put("/profissionais/:id", (req, res) => {
     const id = Number(req.params.id)
     const profissional = profissionais.find(
@@ -151,6 +161,7 @@ app.put("/profissionais/:id", (req, res) => {
     res.json(profissional)
 })
 
+//remove um profissional listado
 app.delete("/profissionais/:id", (req, res) => {
 
     const id = Number(req.params.id);
@@ -173,6 +184,7 @@ app.delete("/profissionais/:id", (req, res) => {
 let servicos = []
 let proximoServicoId = 1
 
+//cadrasta um servico. ex:corte de cabelo
 app.post("/servicos", (req, res) => {
     const {
         nome,
@@ -198,10 +210,12 @@ app.post("/servicos", (req, res) => {
     servicos.push(servico)
     res.status(201).json(servico)
 })
+//lista todos os servicos cadrastados
 app.get("/servicos", (req, res) => {
     res.json(servicos)
 })
 
+//busca servico especifico pelo id
 app.get("/servicos/:id", (req, res) => {
     const id = Number(req.params.id)
     const servico = servicos.find(
@@ -217,6 +231,7 @@ app.get("/servicos/:id", (req, res) => {
     res.json(servico)
 })
 
+//altera as informacoes dos servicos
 app.put("/servicos/:id", (req, res) => {
     const id = Number(req.params.id)
 
@@ -245,6 +260,7 @@ app.put("/servicos/:id", (req, res) => {
     res.json(servico)
 })
 
+//remove um servico
 app.delete("/servicos/:id", (req, res) => {
     const id = Number(req.params.id)
     const indice = servicos.findIndex(
@@ -266,6 +282,7 @@ app.delete("/servicos/:id", (req, res) => {
 let agendamentos = []
 let proximoAgendamentoId = 1
 
+//cria um agendamento e verifica se a vaga esta ocupada naquele horario
 app.post("/agendamentos", (req, res) => {
     const {
         clienteId,
@@ -314,10 +331,13 @@ app.post("/agendamentos", (req, res) => {
     agendamentos.push(agendamento)
     res.status(201).json(agendamento)
 })
+
+//mostra todos agendamentos ja cadrastados
 app.get("/agendamentos", (req, res) => {
     res.json(agendamentos);
 })
 
+//busca um agendamento especifico pelo id 
 app.get("/agendamentos/:id", (req, res) => {
     const id = Number(req.params.id);
     const agendamento = agendamentos.find(
@@ -332,6 +352,7 @@ app.get("/agendamentos/:id", (req, res) => {
 })
 
 //conflito de horarios
+//verifica se o profissional possui um agendamento na mesma data 
 const horarioOcupado = agendamentos.some(agendamento =>
     agendamento.profissionalId === Number(profissionalId) &&
     agendamento.data === data &&
@@ -343,7 +364,8 @@ if (horarioOcupado) {
         erro: "Profissional já possui agendamento nesse horário"
     })
 }
- //remarcar agendamento
+ //remarcar agendamento 
+ //altera dados de agendamento como cliente, profissional, data, servico
 app.put("/agendamentos/:id", (req, res) => {
     const id = Number(req.params.id);
 
@@ -386,6 +408,7 @@ app.put("/agendamentos/:id", (req, res) => {
 })
 
 //cancelar agendamento
+// muda status para cancelados
 app.delete("/agendamentos/:id", (req, res) => {
     const id = Number(req.params.id);
     const agendamento = agendamentos.find(
@@ -406,6 +429,7 @@ app.delete("/agendamentos/:id", (req, res) => {
 
 
 //status do agendamento
+//altera somente os status do agendamento
 app.patch("/agendamentos/:id/status", (req, res) => {
     const id = Number(req.params.id);
     const agendamento = agendamentos.find(
@@ -435,7 +459,7 @@ app.patch("/agendamentos/:id/status", (req, res) => {
     res.json(agendamento);
 })
 
-//busca dos profissionais
+//busca dos profissionais cadarstados
 app.get("/profissionais", (req, res) => {
     let resultado = profissionais
     if (req.query.nome) {
@@ -449,7 +473,7 @@ app.get("/profissionais", (req, res) => {
 })
 
 
-//busca de serviços
+//busca de serviços cadrastados
 app.get("/servicos", (req, res) => {
     let resultado = servicos
     if (req.query.nome) {
