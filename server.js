@@ -331,8 +331,18 @@ app.get("/agendamentos/:id", (req, res) => {
     res.json(agendamento)
 })
 
-
-
+//conflito de horarios
+const horarioOcupado = agendamentos.some(agendamento =>
+    agendamento.profissionalId === Number(profissionalId) &&
+    agendamento.data === data &&
+    agendamento.hora === hora &&
+    agendamento.status !== "cancelado"
+)
+if (horarioOcupado) {
+    return res.status(400).json({
+        erro: "Profissional já possui agendamento nesse horário"
+    })
+}
 
 app.listen(PORTA, () => {
     console.log(`Servidor rodando na porta ${PORTA}`)
