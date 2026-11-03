@@ -1,6 +1,6 @@
-const clienteService = require()
-const profissionalService = require()
-const servicoService = require()
+const clienteService = require("src/Services/clienteService.js")
+const profissionalService = require("src/Services/profissionaisService.js")
+const servicoService = require("src/Services/servicosService.js")
 
 //Entidade agendamento e rotas
 let agendamentos = []
