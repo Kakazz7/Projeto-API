@@ -1,72 +1,92 @@
-const profissionalService = require("../services/profissionalService")
+
+const profissionalService = require("../Services/profissionaisService.js");
 
 // Cadastrar profissional
-exports.criar = (req, res) => {
-    const profissional = profissionalService.criarProfissional(req.body)
+exports.criar = async (req, res) => {
+    try {
+        const profissional = await profissionalService.criarProfissional(req.body);
 
-    if (!profissional) {
-        return res.status(400).json({
-            erro: "Nome e especialidade são obrigatórios"
-        })
+        if (!profissional) {
+            return res.status(400).json({
+                erro: "Nome e especialidade são obrigatórios"
+            });
+        }
+
+        res.status(201).json(profissional);
+    } catch (erro) {
+        res.status(400).json({ erro: erro.message });
     }
-
-    res.status(201).json(profissional)
-}
+};
 
 // Listar profissionais
-exports.listar = (req, res) => {
-    const profissionais = profissionalService.listarProfissionais(
-        req.query.nome
-    )
+exports.listar = async (req, res) => {
+    try {
+        const profissionais = await profissionalService.listarProfissionais(
+            req.query.nome
+        );
 
-    res.json(profissionais)
-}
+        res.json(profissionais);
+    } catch (erro) {
+        res.status(500).json({ erro: erro.message });
+    }
+};
 
 // Buscar profissional por ID
-exports.buscar = (req, res) => {
-    const profissional = profissionalService.buscarProfissional(
-        req.params.id
-    )
+exports.buscar = async (req, res) => {
+    try {
+        const profissional = await profissionalService.buscarProfissional(
+            req.params.id
+        );
 
-    if (!profissional) {
-        return res.status(404).json({
-            erro: "Profissional não encontrado"
-        })
+        if (!profissional) {
+            return res.status(404).json({
+                erro: "Profissional não encontrado"
+            });
+        }
+
+        res.json(profissional);
+    } catch (erro) {
+        res.status(400).json({ erro: erro.message });
     }
-
-    res.json(profissional)
-}
+};
 
 // Atualizar profissional
-exports.atualizar = (req, res) => {
-    const profissional = profissionalService.atualizarProfissional(
-        req.params.id,
-        req.body
-    )
+exports.atualizar = async (req, res) => {
+    try {
+        const profissional = await profissionalService.atualizarProfissionais(
+            req.params.id,
+            req.body
+        );
 
-    if (!profissional) {
-        return res.status(404).json({
-            erro: "Profissional não encontrado"
-        })
+        if (!profissional) {
+            return res.status(404).json({
+                erro: "Profissional não encontrado"
+            });
+        }
+
+        res.json(profissional);
+    } catch (erro) {
+        res.status(400).json({ erro: erro.message });
     }
-
-    res.json(profissional)
-}
+};
 
 // Excluir profissional
-exports.excluir = (req, res) => {
-    const excluido = profissionalService.excluirProfissional(
-        req.params.id
-    )
+exports.excluir = async (req, res) => {
+    try {
+        const excluido = await profissionalService.excluirProfissional(
+            req.params.id
+        );
 
-    if (!excluido) {
-        return res.status(404).json({
-            erro: "Profissional não encontrado"
-        })
+        if (!excluido) {
+            return res.status(404).json({
+                erro: "Profissional não encontrado"
+            });
+        }
+
+        res.json({
+            mensagem: "Profissional excluído com sucesso"
+        });
+    } catch (erro) {
+        res.status(400).json({ erro: erro.message });
     }
-
-    res.json({
-        mensagem: "Profissional excluído com sucesso"
-    })
-}
-
+};

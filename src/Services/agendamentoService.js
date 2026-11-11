@@ -1,90 +1,107 @@
-const clienteService = require("src/Services/clienteService.js")
-const profissionalService = require("src/Services/profissionaisService.js")
-const servicoService = require("src/Services/servicosService.js")
+const AgendamentoModel = require("../Models/AgendamentoModel.js");
+const ClienteModel = require("../Models/ClienteModel.js");
+const ProfissionalModel = require("../Models/ProfissionalModel.js");
+const ServicoModel = require("../Models/ServicoModel.js");
+const { ObjectId } = require("mongodb");
 
-//Entidade agendamento e rotas
-let agendamentos = []
-let proximoAgendamentoId = 1
+// Verifica se o ID é válido
+function idValido(id) {
+    return ObjectId.isValid(id);
+}
 
-//cria um agendamento e verifica se a vaga esta ocupada naquele horario
-function criarAgendamento(dados) {
+// Cria um agendamento
+async function criarAgendamento(dados) {
     const {
         clienteId,
         profissionalId,
         servicoId,
         data,
         hora
-    } = dados
+    } = dados;
 
-    const cliente = clienteService.buscarCliente(clienteId)
+    if (!idValido(clienteId) || !idValido(profissionalId) || !idValido(servicoId)) {
+        return {
+            erro: "ID inválido",
+            status: 400
+        };
+    }
+
+    const cliente = await ClienteModel.buscarPorId(clienteId);
+
     if (!cliente) {
         return {
             erro: "Cliente não encontrado",
             status: 404
-        }
+        };
     }
 
-    const profissional = profissionalService.buscarProfissional(profissionalId)
+    const profissional = await ProfissionalModel.buscarPorId(profissionalId);
+
     if (!profissional) {
         return {
             erro: "Profissional não encontrado",
             status: 404
-        }
+        };
     }
 
-    const servico = servicoService.buscarServico(servicoId)
+    const servico = await ServicoModel.buscarPorId(servicoId);
 
     if (!servico) {
-       return {
-            erro: "Servico não encontrado",
+        return {
+            erro: "Serviço não encontrado",
             status: 404
-        }
-
-        //conflito de horarios
-//verifica se o profissional possui um agendamento na mesma data 
-const horarioOcupado = agendamentos.some(agendamento =>
-    agendamento.profissionalId === Number(profissionalId) &&
-    agendamento.data === data &&
-    agendamento.hora === hora &&
-    agendamento.status !== "cancelado"
-)
-
-if (horarioOcupado) {
-    return {
-        erro: "Profissional já possui agendamento nesse horário",
-        status: 400
+        };
     }
-}
+
+    // Verifica conflito de horários
+    const agendamentos = await AgendamentoModel.buscarTodas();
+
+    const horarioOcupado = agendamentos.some(agendamento =>
+        agendamento.profissionalId === String(profissionalId) &&
+        agendamento.data === data &&
+        agendamento.hora === hora &&
+        agendamento.status !== "cancelado"
+    );
+
+    if (horarioOcupado) {
+        return {
+            erro: "Profissional já possui agendamento nesse horário",
+            status: 400
+        };
+    }
+
     const agendamento = {
-        id: proximoAgendamentoId++,
-        clienteId: Number(clienteId),
-        profissionalId: Number(profissionalId),
-        servicoId: Number(servicoId),
+        clienteId: String(clienteId),
+        profissionalId: String(profissionalId),
+        servicoId: String(servicoId),
         data,
         hora,
         status: "pendente"
-    }
+    };
 
-    agendamentos.push(agendamento)
-    return agendamento
+    const resultado = await AgendamentoModel.inserir(agendamento);
+
+    return {
+        _id: resultado.insertedId,
+        ...agendamento
+    };
 }
 
-
-//mostra todos agendamentos ja cadrastados
-function listarAgendamentos(){
-    return agendamentos
-}
-//busca um agendamento especifico pelo id 
-function buscarAgendamento(id){
-    return agendamentos.find(
-        agendamento => agendamento.id === Number(id)
-    )
+// Lista todos os agendamentos
+async function listarAgendamentos() {
+    return await AgendamentoModel.buscarTodas();
 }
 
-//remarcar agendamento 
- //altera dados de agendamento como cliente, profissional, data, servico
-function atualizarAgendamento(id, dados){
-const agendamento = buscarAgendamento(id)
+// Busca um agendamento pelo ID
+async function buscarAgendamento(id) {
+    if (!idValido(id)) return null;
+
+    return await AgendamentoModel.buscarPorId(id);
+}
+
+// Atualiza ou remarca um agendamento
+async function atualizarAgendamento(id, dados) {
+    const agendamento = await buscarAgendamento(id);
 
     if (!agendamento) {
         return {
@@ -99,78 +116,89 @@ const agendamento = buscarAgendamento(id)
         servicoId,
         data,
         hora
-    } = dados
+    } = dados;
 
-    if(!clienteService.buscarCliente(clienteId)){
+    if (!idValido(clienteId) || !idValido(profissionalId) || !idValido(servicoId)) {
+        return {
+            erro: "ID inválido",
+            status: 400
+        };
+    }
+
+    if (!await ClienteModel.buscarPorId(clienteId)) {
         return {
             erro: "Cliente não encontrado",
             status: 404
-        }
+        };
     }
 
-    if(!profissionalService.buscarProfissional(profissionalId)){
+    if (!await ProfissionalModel.buscarPorId(profissionalId)) {
         return {
             erro: "Profissional não encontrado",
             status: 404
-        }
+        };
     }
 
-    if(!servicoService.buscarServico(servicoIdId)){
+    if (!await ServicoModel.buscarPorId(servicoId)) {
         return {
             erro: "Serviço não encontrado",
             status: 404
-        }
+        };
     }
 
+    // Verifica conflito de horários
+    const agendamentos = await AgendamentoModel.buscarTodas();
+
     const horarioOcupado = agendamentos.some(outro =>
-        outro.id !== id &&
-        outro.profissionalId === Number(profissionalId) &&
+        outro._id.toString() !== id.toString() &&
+        outro.profissionalId === String(profissionalId) &&
         outro.data === data &&
         outro.hora === hora &&
         outro.status !== "cancelado"
-    )
+    );
 
     if (horarioOcupado) {
         return {
             erro: "Profissional já possui agendamento nesse horário",
             status: 400
-        }
+        };
     }
 
-    agendamento.clienteId = Number(clienteId);
-    agendamento.profissionalId = Number(profissionalId);
-    agendamento.servicoId = Number(servicoId);
-    agendamento.data = data;
-    agendamento.hora = hora;
-    return agendamento
-} 
+    await AgendamentoModel.atualizar(id, {
+        clienteId: String(clienteId),
+        profissionalId: String(profissionalId),
+        servicoId: String(servicoId),
+        data,
+        hora
+    });
+
+    return await buscarAgendamento(id);
 }
 
-//cancelar agendamento
-// muda status para cancelados
-function cancelarAgendamento(id){
-    const agendamento = buscarAgendamento(id)
+// Cancela um agendamento
+async function cancelarAgendamento(id) {
+    const agendamento = await buscarAgendamento(id);
 
     if (!agendamento) {
-        return null
+        return null;
+    }
 
-    agendamento.status = "cancelado";
-    
-    return agendamento
+    await AgendamentoModel.atualizar(id, {
+        status: "cancelado"
+    });
+
+    return await buscarAgendamento(id);
 }
-}
 
-
-//status do agendamento
-//altera somente os status do agendamento
-function alterarStatus(id,  status) {
-    const agendamento = buscarAgendamento(id)
+// Altera o status do agendamento
+async function alterarStatus(id, status) {
+    const agendamento = await buscarAgendamento(id);
 
     if (!agendamento) {
         return {
             erro: "Agendamento não encontrado",
             status: 404
-        }
+        };
     }
 
     const statusValidos = [
@@ -178,16 +206,20 @@ function alterarStatus(id,  status) {
         "confirmado",
         "concluido",
         "cancelado"
-    ]
+    ];
+
     if (!statusValidos.includes(status)) {
         return {
             erro: "Status inválido",
             status: 400
-        }
+        };
     }
 
-    agendamento.status = status;
-    return agendamento
+    await AgendamentoModel.atualizar(id, {
+        status
+    });
+
+    return await buscarAgendamento(id);
 }
 
 module.exports = {
@@ -197,4 +229,4 @@ module.exports = {
     atualizarAgendamento,
     cancelarAgendamento,
     alterarStatus
-}
+};

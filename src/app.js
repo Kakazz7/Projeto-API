@@ -1,27 +1,30 @@
+
 const express = require("express");
 
 const app = express();
 
 app.use(express.json());
 
+// Middleware para registrar as requisições
 app.use((req, res, next) => {
     console.log(`${req.method} ${req.url}`);
     next();
 });
 
+// Rota inicial
 app.get("/", (req, res) => {
     res.json({
         mensagem: "API de agendamento funcionando!"
     });
 });
 
+// Importação das rotas
+const clienteRoutes = require("./Routes/Clientesroute.js");
+const profissionalRoutes = require("./Routes/Profissionaisroute.js");
+const servicoRoutes = require("./Routes/Servicosroute.js");
+const agendamentoRoutes = require("./Routes/Agendamentoroute.js");
 
-const clienteRoutes = require("./routes/clienteRoutes");
-const profissionalRoutes = require("./routes/profissionalRoutes");
-const servicoRoutes = require("./routes/servicoRoutes");
-const agendamentoRoutes = require("./routes/agendamentoRoutes");
-
-
+// Utilização das rotas
 app.use("/clientes", clienteRoutes);
 app.use("/profissionais", profissionalRoutes);
 app.use("/servicos", servicoRoutes);

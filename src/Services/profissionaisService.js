@@ -1,68 +1,72 @@
-//Entidade PRofissional e rotas
-let profissionais = []
-let proximoProfissionalId = 1
 
-//cadrasta um profissional
-function criarProfissionais(dados) {
-    const { nome, especialidade } = dados
+const ProfissionalModel = require("../Models/ProfissionalModel.js");
+
+// Cadastra um profissional
+async function criarProfissional(dados) {
+    const { nome, especialidade } = dados;
 
     if (!nome || !especialidade) {
-        return null
+        return null;
     }
+
     const profissional = {
-        id: proximoProfissionalId++,
         nome,
         especialidade
+    };
+
+    const resultado = await ProfissionalModel.inserir(profissional);
+
+    return {
+        _id: resultado.insertedId,
+        ...profissional
+    };
+}
+
+// Lista todos os profissionais ou filtra pelo nome
+async function listarProfissionais(nome) {
+    let resultado = await ProfissionalModel.buscarTodas();
+
+    if (nome) {
+        resultado = resultado.filter(profissional =>
+            profissional.nome.toLowerCase().includes(nome.toLowerCase())
+        );
     }
 
-    profissionais.push(profissional);
-    return profissional
+    return resultado;
 }
 
-//mostra todos os profissionais por lista 
-function listarProfissionais(nome){
-    let resultado = profissionais
-    if(nome){
-        resultado = profissionais.filter(profissionais.nome.toLowerCase().includes(nome.toLowerCase()))
-    }   
-
-    return resultado
+// Busca um profissional pelo ID
+async function buscarProfissional(id) {
+    return await ProfissionalModel.buscarPorId(id);
 }
 
-//busca profissional especifico pelo id
-function buscarProfissional(id){
-   
-    return profissionais.find(
-        profissional => profissional.id === Number(id)
-    )
+// Atualiza os dados de um profissional
+async function atualizarProfissionais(id, dados) {
+    const profissional = await ProfissionalModel.buscarPorId(id);
+
+    if (!profissional) {
+        return null;
+    }
+
+    const { nome, especialidade } = dados;
+
+    if (!nome || !especialidade) {
+        return null;
+    }
+
+    await ProfissionalModel.atualizar(id, {
+        nome,
+        especialidade
+    });
+
+    return await ProfissionalModel.buscarPorId(id);
 }
 
-//atualiza os dados de um profissional
-function atualizarProfissionais(id, dados) {
+// Remove um profissional
+async function excluirProfissional(id) {
+    const resultado = await ProfissionalModel.remover(id);
 
-    const profissional = buscarProfissional(id)
-
-    if (!profissional) return null
-
-
-    const { nome, especialidade } = dados
-    profissional.nome = nome
-    profissional.especialidade = especialidade
-
-    return profissional
-}
-
-//remove um profissional listado
-function excluirProfissioal(id) {
-    const indice = profissionais.findIndex(
-        profissional => profissional.id === Number(id)
-    )
-
-    if (indice === -1) return false
-
-    profissionais.splice(indice, 1)
-    return true
-
+    return resultado.deletedCount > 0;
 }
 
 module.exports = {
@@ -70,5 +74,5 @@ module.exports = {
     listarProfissionais,
     buscarProfissional,
     atualizarProfissionais,
-    excluirProfissioal
-}
+    excluirProfissional
+};

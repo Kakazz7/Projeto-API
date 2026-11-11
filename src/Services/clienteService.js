@@ -1,69 +1,72 @@
-//Entidade Clientes e rotas
-let clientes = []
-let proximoClienteId = 1
 
-//cadrastra um novo cliente obrigatoriamente com nome, email,telefone
-function criarCliente(dados) {
-    const { nome, email, telefone } = dados
+const ClienteModel = require("../Models/ClienteModel.js");
+
+// Cadastra um novo cliente
+async function criarCliente(dados) {
+    const { nome, email, telefone } = dados;
 
     if (!nome || !email || !telefone) {
-        return null
+        return null;
     }
 
     const cliente = {
-        id: proximoClienteId++,
         nome,
         email,
         telefone
-    }
+    };
 
-    clientes.push(cliente);
-    return cliente
-};
+    const resultado = await ClienteModel.inserir(cliente);
 
-//mostra todos clientes ja cadrastados como lista
-function listarClientes(){
-    return clientes
-};
-
- //busca cliente especifico pelo id
-function buscarClientes(id) {
-    return clientes.find(
-        cliente => cliente.id === Number(id)
-    )
+    return {
+        _id: resultado.insertedId,
+        ...cliente
+    };
 }
 
-//altera daddos do cliente ja cadrastado
-function atualizarCliente(id, dados){
-    const cliente = buscarClientes(id)
-    if (!cliente) return null
-    const { nome, email, telefone } = dados
-
-    cliente.nome = nome
-    cliente.email = email
-    cliente.telefone = telefone
-
-    return cliente
+// Lista todos os clientes
+async function listarClientes() {
+    return await ClienteModel.buscarTodas();
 }
 
-//remove o cliente cadrastado
-function excluirCliente(id){
-    const indice = clientes.findIndex(
-        cliente => cliente.id === Number(id)
-    );
+// Busca um cliente pelo ID
+async function buscarCliente(id) {
+    return await ClienteModel.buscarPorId(id);
+}
 
-    if (indice === -1) {
-        return false
+// Atualiza os dados de um cliente
+async function atualizarCliente(id, dados) {
+    const cliente = await ClienteModel.buscarPorId(id);
+
+    if (!cliente) {
+        return null;
     }
 
-    clientes.splice(indice, 1)
-    return true
+    const { nome, email, telefone } = dados;
+
+    if (!nome || !email || !telefone) {
+        return null;
+    }
+
+    await ClienteModel.atualizar(id, {
+        nome,
+        email,
+        telefone
+    });
+
+    return await ClienteModel.buscarPorId(id);
+}
+
+// Remove um cliente
+async function excluirCliente(id) {
+    const resultado = await ClienteModel.remover(id);
+
+    return resultado.deletedCount > 0;
 }
 
 module.exports = {
     criarCliente,
-    listarCliente,
-    bucarCliente,
+    listarClientes,
+    buscarCliente,
     atualizarCliente,
-    excluirCliente,
-}
+    excluirCliente
+};
